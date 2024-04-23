@@ -72,6 +72,9 @@ ScalarT = TypeVar("ScalarT", bound=Scalar)
 T = TypeVar("T", bound=Magnitude)
 
 
+class Settings :
+    strict_mode = False
+
 def ireduce_dimensions(f):
     def wrapped(self, *args, **kwargs):
         result = f(self, *args, **kwargs)
@@ -716,6 +719,14 @@ class PlainQuantity(Generic[MagnitudeT], PrettyIPython, SharedRegistryObject):
         op : function
             operator function (e.g. operator.add, operator.isub)
         """
+
+        def _safe_other_magnitude(units):
+            if not self._REGISTRY.auto_scale :
+                raise(Exception(f"Auto scale mode disabled : explicit conversion of '{other}' to '{units}' required"))
+            return other.to(units).magnitude
+
+
+
         if not self._check(other):
             # other not from same Registry or not a PlainQuantity
             if zero_or_nan(other, True):
@@ -767,7 +778,7 @@ class PlainQuantity(Generic[MagnitudeT], PrettyIPython, SharedRegistryObject):
                 units = other._units
             else:
                 units = self._units
-                magnitude = op(self._magnitude, other.to(self._units).magnitude)
+                magnitude = op(self._magnitude, _safe_other_magnitude(self._units))
 
         elif (
             op == operator.sub
@@ -778,7 +789,7 @@ class PlainQuantity(Generic[MagnitudeT], PrettyIPython, SharedRegistryObject):
             if self._units == other._units:
                 magnitude = op(self._magnitude, other._magnitude)
             else:
-                magnitude = op(self._magnitude, other.to(self._units)._magnitude)
+                magnitude = op(self._magnitude, _safe_other_magnitude(self._units))
             units = self._units.rename(self_non_mul_unit, "delta_" + self_non_mul_unit)
 
         elif (
@@ -788,7 +799,7 @@ class PlainQuantity(Generic[MagnitudeT], PrettyIPython, SharedRegistryObject):
             and not self._has_compatible_delta(other_non_mul_unit)
         ):
             # we convert to self directly since it is multiplicative
-            magnitude = op(self._magnitude, other.to(self._units)._magnitude)
+            magnitude = op(self._magnitude, _safe_other_magnitude(self._units))
             units = self._units
 
         elif (
@@ -800,7 +811,7 @@ class PlainQuantity(Generic[MagnitudeT], PrettyIPython, SharedRegistryObject):
             # Replace offset unit in self by the corresponding delta unit.
             # This is done to prevent a shift by offset in the to()-call.
             tu = self._units.rename(self_non_mul_unit, "delta_" + self_non_mul_unit)
-            magnitude = op(self._magnitude, other.to(tu).magnitude)
+            magnitude = op(self._magnitude, _safe_other_magnitude(tu))
             units = self._units
         elif (
             len(other_non_mul_units) == 1

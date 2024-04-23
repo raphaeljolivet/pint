@@ -234,11 +234,14 @@ class GenericPlainRegistry(Generic[QuantityT, UnitT], metaclass=RegistryMeta):
         cache_folder: Optional[Union[str, pathlib.Path]] = None,
         separate_format_defaults: Optional[bool] = None,
         mpl_formatter: str = "{:P}",
+        auto_scale: bool = True,
     ):
         #: Map a definition class to a adder methods.
         self._adders: Handler = {}
         self._register_definition_adders()
         self._init_dynamic_classes()
+
+
 
         if cache_folder == ":auto:":
             cache_folder = appdirs.user_cache_dir(appname="pint", appauthor=False)
@@ -318,6 +321,7 @@ class GenericPlainRegistry(Generic[QuantityT, UnitT], metaclass=RegistryMeta):
         self._cache = RegistryCache()
 
         self._initialized = False
+        self.auto_scale = auto_scale
 
     def _init_dynamic_classes(self) -> None:
         """Generate subclasses on the fly and attach them to self"""

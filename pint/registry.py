@@ -104,6 +104,8 @@ class UnitRegistry(GenericUnitRegistry[Quantity, Unit]):
     cache_folder : str or pathlib.Path or None, optional
         Specify the folder in which cache files are saved and loaded from.
         If None, the cache is disabled. (default)
+    auto_scale: bool
+        If False, all conversions should be explicit and not automatic scaling is process on add/substract
     """
 
     Quantity: TypeAlias = Quantity
@@ -125,6 +127,7 @@ class UnitRegistry(GenericUnitRegistry[Quantity, Unit]):
         non_int_type=float,
         case_sensitive: bool = True,
         cache_folder=None,
+        auto_scale=True,
     ):
         super().__init__(
             filename=filename,
@@ -141,6 +144,7 @@ class UnitRegistry(GenericUnitRegistry[Quantity, Unit]):
             non_int_type=non_int_type,
             case_sensitive=case_sensitive,
             cache_folder=cache_folder,
+            auto_scale=auto_scale,
         )
 
     def pi_theorem(self, quantities):
